@@ -1,6 +1,10 @@
 # npm-trends
 
+![起動画面](./docs/images/preview.png)
+
 npm-trends は、複数パッケージの直近 1 年分ダウンロード数を同じ折れ線グラフで比較できるツールです。
+
+<https://chocolat0w0.github.io/npm-trends/> で動作しています。
 
 ## できること
 
