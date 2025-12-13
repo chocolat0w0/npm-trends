@@ -20,15 +20,15 @@
 - `src/components/PackageForm/PackageForm.tsx` で入力検証、trim + 小文字化、重複排除を行うフォームを構築。
 - `PackageList` コンポーネントでカラーラベル付きチップを表示し、最新ダウンロード値・削除ボタン・ローディング表示を提供する。
 
-## 5. URL クエリ同期
-
-- `src/hooks/usePackageQuerySync.ts` などのフックで `?packages=<comma>` を `history.replaceState` 経由で同期する。
-- 初期マウント時にクエリを解析してストアへ投入し、存在しないパッケージはエラー扱いでスキップする。
-
-## 6. グラフ可視化
+## 5. グラフ可視化 ✅ (2025-12-13 完了)
 
 - `src/components/DownloadChart/DownloadChart.tsx` で Recharts を使った折れ線グラフを描画。
 - パッケージごとにユニークカラーと凡例/ツールチップを提供し、データが無い場合は空状態メッセージを表示する。
+
+## 6. URL クエリ同期
+
+- `src/hooks/usePackageQuerySync.ts` などのフックで `?packages=<comma>` を `history.replaceState` 経由で同期する。
+- 初期マウント時にクエリを解析してストアへ投入し、存在しないパッケージはエラー扱いでスキップする。
 
 ## 7. 状態表示とアクセシビリティ
 

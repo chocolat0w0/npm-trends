@@ -1,5 +1,6 @@
 import PackageForm from './components/PackageForm/PackageForm';
 import PackageList from './components/PackageList/PackageList';
+import DownloadChart from './components/DownloadChart/DownloadChart';
 import './App.css';
 
 function App() {
@@ -34,12 +35,7 @@ function App() {
           </div>
 
           <div className="panel-body">
-            <p className="placeholder-label">DownloadChart placeholder</p>
-            <p className="placeholder-copy">
-              A responsive line chart will occupy this area to depict a package
-              per series. Additions in the left column will automatically update
-              the visualization and legend here.
-            </p>
+            <DownloadChart />
           </div>
         </section>
       </main>
