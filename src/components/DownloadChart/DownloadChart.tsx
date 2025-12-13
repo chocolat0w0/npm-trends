@@ -72,8 +72,8 @@ const DownloadChart = () => {
         </p>
         <p className="chart-empty-copy">
           {hasSelections
-            ? 'Hang tight while we fetch daily downloads for your packages.'
-            : 'Track up to a year of daily download counts. Packages you add will show up here with color-coded series and tooltips.'}
+            ? 'Hang tight while we fetch weekly download totals for your packages.'
+            : 'Track up to a year of weekly download totals. Packages you add will show up here with color-coded series and tooltips.'}
         </p>
       </div>
     );
@@ -81,7 +81,7 @@ const DownloadChart = () => {
 
   return (
     <div className="chart-wrapper">
-      <p className="chart-hint">Hover or tap the lines to compare exact daily downloads.</p>
+      <p className="chart-hint">Hover or tap the lines to compare weekly download totals.</p>
       <div className="chart-area" role="region" aria-label="npm downloads chart">
         <ResponsiveContainer width="100%" height={360}>
           <LineChart

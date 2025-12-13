@@ -1,5 +1,6 @@
 import {
   DownloadSeries,
+  NpmDownloadPoint,
   NpmDownloadsApiResponse,
   NpmDownloadsSuccessResponse,
   isNpmDownloadsError,
@@ -152,12 +153,9 @@ export class NpmDownloadsClient {
     packageName: string,
     payload: NpmDownloadsSuccessResponse,
   ): DownloadSeries {
-    const points = payload.downloads.map((point) => ({
-      date: point.day,
-      downloads: point.downloads,
-    }));
+    const points = this.aggregateWeeklyPoints(payload.downloads);
     const totalDownloads = points.reduce((sum, point) => sum + point.downloads, 0);
-    const lastDayDownloads = points.at(-1)?.downloads ?? 0;
+    const lastDayDownloads = payload.downloads.at(-1)?.downloads ?? 0;
 
     return {
       packageName,
@@ -167,6 +165,38 @@ export class NpmDownloadsClient {
       totalDownloads,
       lastDayDownloads,
     };
+  }
+
+  private aggregateWeeklyPoints(points: NpmDownloadPoint[]) {
+    if (points.length === 0) {
+      return [] as DownloadSeries['points'];
+    }
+
+    const result: DownloadSeries['points'] = [];
+    let bucketStart: string | null = null;
+    let bucketSum = 0;
+    let dayCount = 0;
+
+    for (const point of points) {
+      bucketStart ??= point.day;
+
+      bucketSum += point.downloads;
+      dayCount += 1;
+
+      const bucketFilled = dayCount === 7;
+
+      if (bucketFilled && bucketStart) {
+        result.push({
+          date: bucketStart,
+          downloads: bucketSum,
+        });
+        bucketStart = null;
+        bucketSum = 0;
+        dayCount = 0;
+      }
+    }
+
+    return result;
   }
 }
 

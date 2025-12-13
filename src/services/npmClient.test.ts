@@ -11,6 +11,11 @@ const createSuccessResponse = (
   downloads: [
     { day: '2024-01-01', downloads: 100 },
     { day: '2024-01-02', downloads: 150 },
+    { day: '2024-01-03', downloads: 0 },
+    { day: '2024-01-04', downloads: 0 },
+    { day: '2024-01-05', downloads: 0 },
+    { day: '2024-01-06', downloads: 0 },
+    { day: '2024-01-07', downloads: 0 },
   ],
   ...overrides,
 });
@@ -50,6 +55,29 @@ describe('NpmDownloadsClient', () => {
     const cached = await client.fetchPackageDownloads('react');
     expect(cached).toBe(result);
     expect(fetchFn).toHaveBeenCalledTimes(1);
+  });
+
+  it('aggregates into full weeks and drops incomplete tails', async () => {
+    const downloads = Array.from({ length: 10 }, (_, index) => ({
+      day: `2024-01-${String(index + 1).padStart(2, '0')}`,
+      downloads: index + 1,
+    }));
+    const fetchFn = vi
+      .fn()
+      .mockResolvedValue(
+        mockResponse(
+          createSuccessResponse({
+            downloads,
+          }),
+        ),
+      );
+    const client = new NpmDownloadsClient({ fetchFn, debounceMs: 0 });
+
+    const result = await client.fetchPackageDownloads('react');
+
+    expect(result.points).toEqual([{ date: '2024-01-01', downloads: 28 }]);
+    expect(result.totalDownloads).toBe(28);
+    expect(result.lastDayDownloads).toBe(10);
   });
 
   it('throws a NOT_FOUND error when API returns error payload', async () => {
