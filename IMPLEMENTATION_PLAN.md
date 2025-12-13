@@ -10,9 +10,9 @@
 - `src/types/DownloadSeries.ts` で API レスポンスとグラフ用データ構造を型定義する。
 - `src/services/npmClient.ts` に fetch ラッパーを実装し、メモリキャッシュ・エラーハンドリング・300ms デバウンス制御を組み込む。
 
-## 3. 状態管理
+## 3. 状態管理 ✅ (2025-12-13 完了)
 
-- Zustand ストア (`src/store/packagesStore.ts`) を用意し、`packages`, `datasets`, `status`, `errors` を保持する。
+- React の `useSyncExternalStore` を活用した自前のストア (`src/store/packagesStore.ts`) を用意し、`packages`, `datasets`, `status`, `errors` を保持する。
 - 追加・削除・URL 初期化アクションと、グラフ描画向けのセレクター/派生データを実装する。
 
 ## 4. パッケージ入力/一覧 UI
