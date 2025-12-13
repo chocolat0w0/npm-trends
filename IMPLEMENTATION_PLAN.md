@@ -25,7 +25,7 @@
 - `src/components/DownloadChart/DownloadChart.tsx` で Recharts を使った折れ線グラフを描画。
 - パッケージごとにユニークカラーと凡例/ツールチップを提供し、データが無い場合は空状態メッセージを表示する。
 
-## 6. URL クエリ同期
+## 6. URL クエリ同期 ✅ (2025-12-13 完了)
 
 - `src/hooks/usePackageQuerySync.ts` などのフックで `?packages=<comma>` を `history.replaceState` 経由で同期する。
 - 初期マウント時にクエリを解析してストアへ投入し、存在しないパッケージはエラー扱いでスキップする。

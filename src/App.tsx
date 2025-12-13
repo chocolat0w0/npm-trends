@@ -1,9 +1,11 @@
 import PackageForm from './components/PackageForm/PackageForm';
 import PackageList from './components/PackageList/PackageList';
 import DownloadChart from './components/DownloadChart/DownloadChart';
+import { usePackageQuerySync } from './hooks/usePackageQuerySync';
 import './App.css';
 
 function App() {
+  usePackageQuerySync();
   return (
     <div className="app-shell">
       <header className="app-hero">
