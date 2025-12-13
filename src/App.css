@@ -113,6 +113,11 @@ body {
   color: var(--text-subtle);
 }
 
+.package-panel-body {
+  gap: 1.5rem;
+  color: var(--text);
+}
+
 .placeholder-label {
   font-weight: 600;
   color: var(--text);

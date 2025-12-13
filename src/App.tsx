@@ -1,3 +1,5 @@
+import PackageForm from './components/PackageForm/PackageForm';
+import PackageList from './components/PackageList/PackageList';
 import './App.css';
 
 function App() {
@@ -19,13 +21,9 @@ function App() {
             <h2>Manage packages</h2>
           </div>
 
-          <div className="panel-body">
-            <p className="placeholder-label">Package form & list placeholder</p>
-            <p className="placeholder-copy">
-              The upcoming PackageForm and PackageList components will live here.
-              Use this column to enter npm package names, view their metadata,
-              and remove them when necessary.
-            </p>
+          <div className="panel-body package-panel-body">
+            <PackageForm />
+            <PackageList />
           </div>
         </section>
 

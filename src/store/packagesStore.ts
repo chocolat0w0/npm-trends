@@ -85,24 +85,45 @@ const createBoundHook = <State extends object>(
     equalityFn: EqualityChecker<Slice> = Object.is,
   ): Slice => {
     const selectorRef = useRef(selector);
-    selectorRef.current = selector;
-
     const equalityFnRef = useRef(equalityFn);
-    equalityFnRef.current = equalityFn;
+    const lastStateRef = useRef<State>();
+    const sliceRef = useRef<Slice>(selector(api.getState()));
 
-    const getSnapshot = useCallback(
-      () => selectorRef.current(api.getState()),
-      [api],
-    );
+    if (selectorRef.current !== selector) {
+      selectorRef.current = selector;
+      lastStateRef.current = undefined;
+      sliceRef.current = selector(api.getState());
+    }
+
+    if (equalityFnRef.current !== equalityFn) {
+      equalityFnRef.current = equalityFn;
+    }
+
+    const getSnapshot = useCallback(() => {
+      const nextState = api.getState();
+      if (lastStateRef.current !== nextState) {
+        lastStateRef.current = nextState;
+        sliceRef.current = selectorRef.current(nextState);
+      }
+      return sliceRef.current;
+    }, [api]);
 
     const subscribe = useCallback(
       (notify: () => void) =>
         api.subscribe((state, previous) => {
-          const previousSlice = selectorRef.current(previous);
+          const previousSlice =
+            lastStateRef.current === previous && sliceRef.current !== undefined
+              ? sliceRef.current
+              : selectorRef.current(previous);
           const nextSlice = selectorRef.current(state);
           if (!equalityFnRef.current(previousSlice, nextSlice)) {
+            lastStateRef.current = state;
+            sliceRef.current = nextSlice;
             notify();
+            return;
           }
+          lastStateRef.current = state;
+          sliceRef.current = nextSlice;
         }),
       [api],
     );

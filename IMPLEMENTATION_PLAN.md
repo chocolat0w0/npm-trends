@@ -15,7 +15,7 @@
 - React の `useSyncExternalStore` を活用した自前のストア (`src/store/packagesStore.ts`) を用意し、`packages`, `datasets`, `status`, `errors` を保持する。
 - 追加・削除・URL 初期化アクションと、グラフ描画向けのセレクター/派生データを実装する。
 
-## 4. パッケージ入力/一覧 UI
+## 4. パッケージ入力/一覧 UI ✅ (2025-12-13 完了)
 
 - `src/components/PackageForm/PackageForm.tsx` で入力検証、trim + 小文字化、重複排除を行うフォームを構築。
 - `PackageList` コンポーネントでカラーラベル付きチップを表示し、最新ダウンロード値・削除ボタン・ローディング表示を提供する。

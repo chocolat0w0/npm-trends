@@ -1,0 +1,145 @@
+.package-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.package-list--empty {
+  border: 1px dashed rgba(236, 242, 255, 0.2);
+  border-radius: 16px;
+  padding: 1.5rem;
+  background: rgba(17, 23, 41, 0.45);
+}
+
+.package-empty-title {
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.package-empty-copy {
+  margin: 0;
+  color: var(--text-subtle);
+  font-size: 0.9rem;
+}
+
+.package-row {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 0.75rem;
+  align-items: center;
+  padding: 0.9rem 1rem;
+  border-radius: 14px;
+  background: rgba(16, 22, 38, 0.95);
+  border: 1px solid rgba(236, 242, 255, 0.08);
+}
+
+.package-color {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.08);
+}
+
+.package-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  color: var(--text);
+}
+
+.package-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.package-name {
+  font-weight: 600;
+  text-transform: lowercase;
+  color: var(--text);
+}
+
+.package-metrics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+  color: var(--text-subtle);
+  margin: 0;
+}
+
+.metric-separator {
+  opacity: 0.6;
+}
+
+.package-pill {
+  border-radius: 999px;
+  padding: 0.25rem 0.7rem;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  background: rgba(142, 242, 255, 0.18);
+  color: var(--accent);
+}
+
+.package-pill.loading {
+  animation: pulse 1.2s ease-in-out infinite;
+}
+
+.package-pill.error {
+  background: rgba(255, 179, 193, 0.2);
+  color: #ffb3c1;
+}
+
+.package-error {
+  font-size: 0.8rem;
+  color: #ffb3c1;
+  margin: 0;
+}
+
+.package-remove {
+  border: none;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text);
+  padding: 0.5rem 0.9rem;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background 150ms ease, transform 150ms ease;
+}
+
+.package-remove:hover {
+  background: rgba(255, 255, 255, 0.16);
+  transform: translateY(-1px);
+}
+
+.package-remove:active {
+  transform: translateY(0);
+}
+
+@keyframes pulse {
+  0% {
+    opacity: 0.5;
+  }
+
+  50% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0.5;
+  }
+}
+
+@media (max-width: 520px) {
+  .package-row {
+    grid-template-columns: auto 1fr;
+  }
+
+  .package-remove {
+    grid-column: 2 / 3;
+    justify-self: end;
+  }
+}
