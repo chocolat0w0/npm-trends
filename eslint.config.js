@@ -12,7 +12,7 @@ const withTsFiles = (config) =>
 import { defineConfig } from "eslint/config";
 export default defineConfig([
   {
-    ignores: ["eslint.config.js"],
+    ignores: ["eslint.config.js", "dist/**"],
   },
   {
     files: ["**/*.{js,jsx,cjs,mjs}"],

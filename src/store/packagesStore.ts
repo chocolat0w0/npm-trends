@@ -23,7 +23,7 @@ export interface StoreApi<TState> {
   subscribe: (listener: StoreListener<TState>) => () => void;
 }
 
-const createStore = <TState extends Record<string, unknown>>(
+const createStore = <TState extends object>(
   initializer: (set: SetState<TState>, get: GetState<TState>) => TState,
 ): StoreApi<TState> => {
   let state: TState;
@@ -80,14 +80,17 @@ type UseStoreHook<State> = {
 const createBoundHook = <State extends object>(
   api: StoreApi<State>,
 ): UseStoreHook<State> => {
+  const identitySelector: UseStoreSelector<State, State> = (state) => state;
+
   const useStore = <Slice = State>(
-    selector: UseStoreSelector<State, Slice> = ((state) => state as Slice),
+    selector: UseStoreSelector<State, Slice> =
+      (identitySelector as unknown as UseStoreSelector<State, Slice>),
     equalityFn: EqualityChecker<Slice> = Object.is,
   ): Slice => {
     const selectorRef = useRef(selector);
     const equalityFnRef = useRef(equalityFn);
-    const lastStateRef = useRef<State>();
-    const sliceRef = useRef<Slice>(selector(api.getState()));
+    const lastStateRef = useRef<State | undefined>(undefined);
+    const sliceRef = useRef<Slice>(selectorRef.current(api.getState()));
 
     if (selectorRef.current !== selector) {
       selectorRef.current = selector;

@@ -7,8 +7,8 @@
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
     "strict": true,
-    "noEmit": true,
-    "types": ["vite/client"]
+    "outDir": "./dist/node",
+    "types": ["node", "vite/client"]
   },
   "include": ["vite.config.ts", "vitest.config.ts"]
 }
