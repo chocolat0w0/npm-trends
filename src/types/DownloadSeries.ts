@@ -23,6 +23,11 @@ export interface DownloadPoint {
   downloads: number;
 }
 
+export interface PackageRelease {
+  version: string;
+  date: string;
+}
+
 export interface DownloadSeries {
   packageName: string;
   start: string;
@@ -30,6 +35,7 @@ export interface DownloadSeries {
   points: DownloadPoint[];
   totalDownloads: number;
   lastDayDownloads: number;
+  releases: PackageRelease[];
 }
 
 export const isNpmDownloadsError = (

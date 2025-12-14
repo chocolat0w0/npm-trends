@@ -1,9 +1,10 @@
-import { CSSProperties, SVGProps, useMemo } from 'react';
+import { CSSProperties, SVGProps, useMemo, useState } from 'react';
 import {
   CartesianGrid,
   Legend,
   Line,
   LineChart,
+  ReferenceDot,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -15,7 +16,7 @@ import {
   usePackagesStore,
 } from '../../store/packagesStore';
 import type { NameType, ValueType } from 'recharts/types/component/DefaultTooltipContent';
-import { buildChartData } from './buildChartData';
+import { buildChartData, buildReleaseMarkers } from './buildChartData';
 import './DownloadChart.css';
 
 const dateTickFormatter = new Intl.DateTimeFormat('en-US', {
@@ -25,6 +26,12 @@ const dateTickFormatter = new Intl.DateTimeFormat('en-US', {
 
 const tooltipDateFormatter = new Intl.DateTimeFormat('en-US', {
   weekday: 'short',
+  month: 'short',
+  day: 'numeric',
+  year: 'numeric',
+});
+
+const releaseDateFormatter = new Intl.DateTimeFormat('en-US', {
   month: 'short',
   day: 'numeric',
   year: 'numeric',
@@ -59,10 +66,27 @@ const formatTooltipLabel = (value: NameType) =>
     ? tooltipDateFormatter.format(new Date(value))
     : String(value ?? '');
 
+const formatReleaseTitle = (
+  packageName: string,
+  version: string,
+  releaseDate: string,
+) => `${packageName}@${version} released ${releaseDateFormatter.format(new Date(releaseDate))}`;
+
 const DownloadChart = () => {
   const series = usePackagesStore(selectOrderedSeries);
   const hasSelections = usePackagesStore((state) => state.packages.length > 0);
   const chartData = useMemo(() => buildChartData(series), [series]);
+  const releaseMarkers = useMemo(() => buildReleaseMarkers(series), [series]);
+  const [showReleaseMarkers, setShowReleaseMarkers] = useState(true);
+  const hasReleaseMarkers = releaseMarkers.length > 0;
+  const releaseToggleChecked = hasReleaseMarkers && showReleaseMarkers;
+  const colorByPackage = useMemo(() => {
+    const map = new Map<string, string>();
+    series.forEach((item, index) => {
+      map.set(item.packageName, getSeriesColor(index));
+    });
+    return map;
+  }, [series]);
 
   if (chartData.length === 0) {
     return (
@@ -81,7 +105,24 @@ const DownloadChart = () => {
 
   return (
     <div className="chart-wrapper">
-      <p className="chart-hint">Hover or tap the lines to compare weekly download totals.</p>
+      <div className="chart-toolbar">
+        <p className="chart-hint">
+          Hover or tap the lines to compare weekly download totals.
+        </p>
+        <label
+          className={`chart-toggle${hasReleaseMarkers ? '' : ' chart-toggle--disabled'}`}
+        >
+          <input
+            type="checkbox"
+            className="chart-toggle-input"
+            checked={releaseToggleChecked}
+            onChange={(event) => setShowReleaseMarkers(event.target.checked)}
+            disabled={!hasReleaseMarkers}
+            aria-label="Toggle release markers"
+          />
+          <span className="chart-toggle-label">Release markers</span>
+        </label>
+      </div>
       <div className="chart-area" role="region" aria-label="npm downloads chart">
         <ResponsiveContainer width="100%" height={360}>
           <LineChart
@@ -127,6 +168,30 @@ const DownloadChart = () => {
                 isAnimationActive={false}
               />
             ))}
+            {releaseToggleChecked &&
+              releaseMarkers.map((marker) => {
+                const color = colorByPackage.get(marker.packageName) ?? 'var(--accent)';
+                return (
+                  <ReferenceDot
+                    key={`${marker.packageName}-${marker.version}-${marker.releaseDate}`}
+                    x={marker.bucketDate}
+                    y={marker.downloads}
+                    r={5}
+                    fill={color}
+                    stroke="rgba(8, 12, 26, 0.9)"
+                    strokeWidth={1.5}
+                    ifOverflow="discard"
+                  >
+                    <title>
+                      {formatReleaseTitle(
+                        marker.packageName,
+                        marker.version,
+                        marker.releaseDate,
+                      )}
+                    </title>
+                  </ReferenceDot>
+                );
+              })}
           </LineChart>
         </ResponsiveContainer>
       </div>

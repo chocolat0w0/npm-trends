@@ -1,9 +1,11 @@
 import { useCallback, useRef, useSyncExternalStore } from 'react';
-import { DownloadSeries } from '../types/DownloadSeries';
+import { DownloadSeries, PackageRelease } from '../types/DownloadSeries';
 import { PackageRequestStatus, PackageSummary } from '../types/Packages';
 import { fetchPackageDownloads, normalizePackageName } from '../services/npmClient';
+import { fetchPackageReleaseTimeline } from '../services/npmRegistryClient';
 
 type FetchDownloads = (packageName: string) => Promise<DownloadSeries>;
+type FetchReleases = (packageName: string) => Promise<PackageRelease[]>;
 
 type SetState<TState> = (
   partial:
@@ -159,6 +161,29 @@ const omitKey = <TValue>(map: Record<string, TValue>, key: string) => {
   return clone;
 };
 
+const parseDate = (value: string) => {
+  const timestamp = Date.parse(value);
+  return Number.isFinite(timestamp) ? timestamp : null;
+};
+
+const filterReleasesToRange = (
+  releases: PackageRelease[],
+  start: string,
+  end: string,
+) => {
+  const rangeStart = parseDate(start);
+  const rangeEnd = parseDate(end);
+
+  if (rangeStart == null || rangeEnd == null) {
+    return releases;
+  }
+
+  return releases.filter((release) => {
+    const timestamp = parseDate(release.date);
+    return timestamp != null && timestamp >= rangeStart && timestamp <= rangeEnd;
+  });
+};
+
 const createEmptySeries = (packageName: string): DownloadSeries => ({
   packageName,
   start: '',
@@ -166,6 +191,7 @@ const createEmptySeries = (packageName: string): DownloadSeries => ({
   points: [],
   totalDownloads: 0,
   lastDayDownloads: 0,
+  releases: [],
 });
 
 export interface PackagesStoreState {
@@ -187,6 +213,7 @@ export type PackagesStore = PackagesStoreState & PackagesStoreActions;
 
 export interface PackagesStoreOptions {
   fetchDownloads?: FetchDownloads;
+  fetchReleases?: FetchReleases;
 }
 
 const formatErrorMessage = (error: unknown) =>
@@ -196,6 +223,7 @@ export const createPackagesStore = (
   options: PackagesStoreOptions = {},
 ): StoreApi<PackagesStore> => {
   const fetchDownloads = options.fetchDownloads ?? fetchPackageDownloads;
+  const fetchReleases = options.fetchReleases ?? fetchPackageReleaseTimeline;
   const pendingRequests = new Map<string, Promise<void>>();
 
   return createStore<PackagesStore>((set, get) => {
@@ -212,12 +240,21 @@ export const createPackagesStore = (
         }));
 
         try {
-          const series = await fetchDownloads(packageName);
+          const [series, releases] = await Promise.all([
+            fetchDownloads(packageName),
+            fetchReleases(packageName).catch(() => []),
+          ]);
+          const boundedReleases = filterReleasesToRange(
+            releases,
+            series.start,
+            series.end,
+          );
+          const seriesWithReleases = { ...series, releases: boundedReleases };
           if (!get().packages.includes(packageName)) {
             return;
           }
           set((state) => ({
-            datasets: { ...state.datasets, [packageName]: series },
+            datasets: { ...state.datasets, [packageName]: seriesWithReleases },
             status: { ...state.status, [packageName]: 'success' },
           }));
         } catch (error) {

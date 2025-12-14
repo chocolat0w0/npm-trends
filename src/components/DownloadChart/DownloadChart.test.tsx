@@ -2,7 +2,7 @@ import React from 'react';
 import { describe, expect, it, beforeEach, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import DownloadChart from './DownloadChart';
-import { buildChartData } from './buildChartData';
+import { buildChartData, buildReleaseMarkers } from './buildChartData';
 import { DownloadSeries } from '../../types/DownloadSeries';
 import { packagesStore } from '../../store/packagesStore';
 
@@ -26,6 +26,7 @@ vi.mock('recharts', async () => {
 const createSeries = (
   packageName: string,
   points: DownloadSeries['points'],
+  releases: DownloadSeries['releases'] = [],
 ): DownloadSeries => ({
   packageName,
   start: points[0]?.date ?? '2024-01-01',
@@ -33,6 +34,7 @@ const createSeries = (
   totalDownloads: points.reduce((sum, point) => sum + point.downloads, 0),
   lastDayDownloads: points.at(-1)?.downloads ?? 0,
   points,
+  releases,
 });
 
 describe('buildChartData', () => {
@@ -52,6 +54,41 @@ describe('buildChartData', () => {
     expect(chart[0]).toMatchObject({ date: '2024-01-01', react: 10, vue: 5 });
     expect(chart[1]).toMatchObject({ date: '2024-01-02', react: 12 });
     expect(chart[2]).toMatchObject({ date: '2024-01-03', vue: 15 });
+  });
+});
+
+describe('buildReleaseMarkers', () => {
+  it('aligns release dates with their containing buckets', () => {
+    const markers = buildReleaseMarkers([
+      createSeries(
+        'react',
+        [
+          { date: '2024-01-01', downloads: 70 },
+          { date: '2024-01-08', downloads: 120 },
+        ],
+        [
+          { version: '1.0.0', date: '2024-01-03T00:00:00.000Z' },
+          { version: '1.1.0', date: '2024-01-10T00:00:00.000Z' },
+        ],
+      ),
+    ]);
+
+    expect(markers).toEqual([
+      {
+        packageName: 'react',
+        version: '1.0.0',
+        releaseDate: '2024-01-03T00:00:00.000Z',
+        bucketDate: '2024-01-01',
+        downloads: 70,
+      },
+      {
+        packageName: 'react',
+        version: '1.1.0',
+        releaseDate: '2024-01-10T00:00:00.000Z',
+        bucketDate: '2024-01-08',
+        downloads: 120,
+      },
+    ]);
   });
 });
 
@@ -90,5 +127,48 @@ describe('DownloadChart component', () => {
       screen.getByRole('region', { name: /npm downloads chart/i }),
     ).toBeInTheDocument();
     expect(screen.getByText(/react/i)).toBeInTheDocument();
+  });
+
+  it('disables the release toggle when no markers exist', () => {
+    packagesStore.setState((state) => ({
+      ...state,
+      packages: ['react'],
+      datasets: {
+        ...state.datasets,
+        react: createSeries('react', [
+          { date: '2024-01-01', downloads: 10 },
+          { date: '2024-01-08', downloads: 20 },
+        ]),
+      },
+    }));
+
+    render(<DownloadChart />);
+
+    const toggle = screen.getByLabelText<HTMLInputElement>(/release markers/i);
+    expect(toggle).toBeDisabled();
+  });
+
+  it('enables the release toggle when release markers exist', () => {
+    packagesStore.setState((state) => ({
+      ...state,
+      packages: ['react'],
+      datasets: {
+        ...state.datasets,
+        react: createSeries(
+          'react',
+          [
+            { date: '2024-01-01', downloads: 10 },
+            { date: '2024-01-08', downloads: 20 },
+          ],
+          [{ version: '1.0.0', date: '2024-01-03T00:00:00.000Z' }],
+        ),
+      },
+    }));
+
+    render(<DownloadChart />);
+
+    const toggle = screen.getByLabelText<HTMLInputElement>(/release markers/i);
+    expect(toggle).not.toBeDisabled();
+    expect(toggle.checked).toBe(true);
   });
 });

@@ -164,6 +164,7 @@ export class NpmDownloadsClient {
       points,
       totalDownloads,
       lastDayDownloads,
+      releases: [],
     };
   }
 

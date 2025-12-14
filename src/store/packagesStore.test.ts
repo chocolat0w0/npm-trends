@@ -4,7 +4,7 @@ import {
   selectOrderedSeries,
   selectPackageSummaries,
 } from './packagesStore';
-import { DownloadSeries } from '../types/DownloadSeries';
+import { DownloadSeries, PackageRelease } from '../types/DownloadSeries';
 
 const createSeries = (
   packageName: string,
@@ -19,11 +19,14 @@ const createSeries = (
     { date: '2024-01-01', downloads: 5 },
     { date: '2024-01-02', downloads: 5 },
   ],
+  releases: overrides.releases ?? [],
   ...overrides,
 });
 
 describe('packagesStore', () => {
   const createFetchMock = () => vi.fn((pkg: string) => Promise.resolve(createSeries(pkg)));
+  const createReleaseMock = () =>
+    vi.fn(() => Promise.resolve<PackageRelease[]>([]));
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -31,7 +34,8 @@ describe('packagesStore', () => {
 
   it('adds normalized packages, fetches data, and tracks success status', async () => {
     const fetchDownloads = createFetchMock();
-    const store = createPackagesStore({ fetchDownloads });
+    const fetchReleases = createReleaseMock();
+    const store = createPackagesStore({ fetchDownloads, fetchReleases });
 
     await store.getState().addPackage(' React ');
 
@@ -43,7 +47,8 @@ describe('packagesStore', () => {
 
   it('ignores duplicate package entries', async () => {
     const fetchDownloads = createFetchMock();
-    const store = createPackagesStore({ fetchDownloads });
+    const fetchReleases = createReleaseMock();
+    const store = createPackagesStore({ fetchDownloads, fetchReleases });
 
     await store.getState().addPackage('react');
     await store.getState().addPackage('React');
@@ -54,7 +59,8 @@ describe('packagesStore', () => {
 
   it('records fetch failures as errors', async () => {
     const fetchDownloads = vi.fn().mockRejectedValue(new Error('boom'));
-    const store = createPackagesStore({ fetchDownloads });
+    const fetchReleases = createReleaseMock();
+    const store = createPackagesStore({ fetchDownloads, fetchReleases });
 
     await store.getState().addPackage('react');
 
@@ -64,7 +70,8 @@ describe('packagesStore', () => {
 
   it('removes packages and related state cleanly', async () => {
     const fetchDownloads = createFetchMock();
-    const store = createPackagesStore({ fetchDownloads });
+    const fetchReleases = createReleaseMock();
+    const store = createPackagesStore({ fetchDownloads, fetchReleases });
 
     await store.getState().addPackage('react');
     store.getState().removePackage('react');
@@ -77,7 +84,8 @@ describe('packagesStore', () => {
 
   it('initializes from URL packages without refetching cached data', async () => {
     const fetchDownloads = createFetchMock();
-    const store = createPackagesStore({ fetchDownloads });
+    const fetchReleases = createReleaseMock();
+    const store = createPackagesStore({ fetchDownloads, fetchReleases });
 
     await store.getState().addPackage('react');
     await store.getState().initializeFromQuery(['React', 'Vue', 'react']);
@@ -88,7 +96,8 @@ describe('packagesStore', () => {
 
   it('refreshes an existing package when requested', async () => {
     const fetchDownloads = createFetchMock();
-    const store = createPackagesStore({ fetchDownloads });
+    const fetchReleases = createReleaseMock();
+    const store = createPackagesStore({ fetchDownloads, fetchReleases });
 
     await store.getState().addPackage('react');
 
@@ -100,7 +109,8 @@ describe('packagesStore', () => {
 
   it('exposes derived selectors for charting and summaries', async () => {
     const fetchDownloads = createFetchMock();
-    const store = createPackagesStore({ fetchDownloads });
+    const fetchReleases = createReleaseMock();
+    const store = createPackagesStore({ fetchDownloads, fetchReleases });
 
     await store.getState().addPackage('react');
     await store.getState().addPackage('vue');
@@ -115,5 +125,21 @@ describe('packagesStore', () => {
       status: 'success',
       totalDownloads: 100,
     });
+  });
+
+  it('stores release timelines filtered to the download range', async () => {
+    const fetchDownloads = createFetchMock();
+    const fetchReleases = vi.fn().mockResolvedValue([
+      { version: '0.9.0', date: '2023-01-01T00:00:00.000Z' },
+      { version: '1.0.0', date: '2024-02-02T00:00:00.000Z' },
+      { version: '1.1.0', date: '2025-02-02T00:00:00.000Z' },
+    ] as PackageRelease[]);
+    const store = createPackagesStore({ fetchDownloads, fetchReleases });
+
+    await store.getState().addPackage('react');
+
+    expect(store.getState().datasets.react?.releases).toEqual([
+      { version: '1.0.0', date: '2024-02-02T00:00:00.000Z' },
+    ]);
   });
 });

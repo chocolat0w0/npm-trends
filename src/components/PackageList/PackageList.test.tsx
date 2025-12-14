@@ -15,6 +15,7 @@ const createSeries = (
   totalDownloads: 1000,
   lastDayDownloads: 123,
   points: [],
+  releases: overrides.releases ?? [],
   ...overrides,
 });
 

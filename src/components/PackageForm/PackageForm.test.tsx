@@ -5,6 +5,7 @@ import PackageForm from './PackageForm';
 import { packagesStore } from '../../store/packagesStore';
 import { DownloadSeries } from '../../types/DownloadSeries';
 import { fetchPackageDownloads } from '../../services/npmClient';
+import { fetchPackageReleaseTimeline } from '../../services/npmRegistryClient';
 
 vi.mock('../../services/npmClient', async () => {
   const actual = await vi.importActual<typeof import('../../services/npmClient')>(
@@ -18,6 +19,7 @@ vi.mock('../../services/npmClient', async () => {
     points: [],
     totalDownloads: 0,
     lastDayDownloads: 0,
+    releases: [],
   });
 
   return {
@@ -27,6 +29,10 @@ vi.mock('../../services/npmClient', async () => {
     ),
   };
 });
+
+vi.mock('../../services/npmRegistryClient', () => ({
+  fetchPackageReleaseTimeline: vi.fn(() => Promise.resolve([])),
+}));
 
 const createDeferredSeries = () => {
   let resolve!: (value: DownloadSeries) => void;
@@ -52,6 +58,7 @@ describe('PackageForm', () => {
   beforeEach(() => {
     resetStore();
     vi.mocked(fetchPackageDownloads).mockClear();
+    vi.mocked(fetchPackageReleaseTimeline).mockClear();
   });
 
   it('validates empty input before allowing submission', async () => {
@@ -137,6 +144,7 @@ describe('PackageForm', () => {
       totalDownloads: 0,
       lastDayDownloads: 0,
       points: [],
+      releases: [],
     });
 
     await screen.findByText(/tracking 1 package/i);
